@@ -22,12 +22,16 @@ const tagColumnName = 'Tags'
 relateParentDbToChildDb()
 
 async function relateParentDbToChildDb() {
-  const parentDbTags = await getDbMultiSelect(parentDbId, tagColumnName)
-
-  for (const tag of parentDbTags) {
-    const parentPages = await searchDbPagesWithTag(parentDbId, tagColumnName, tag)
-    const childPages = await searchDbPagesWithTag(childDbId, tagColumnName, tag)
-    // await updateRelation()
+  const parentPages = await getParentDbTags(parentDbId, tagColumnName)
+  for (const parentPage of parentPages) {
+    const childPages = await searchDbPagesWithTag(childDbId, tagColumnName, parentPage.tag)
+    // @ts-ignore
+    const childPageIds = []
+    for (const childPageId of childPages.pageIds) {
+      childPageIds.push({'id': childPageId})
+    }
+    //console.log(childPageIds)
+    await updateRelation(parentPage.pageId, childPageIds, parentDbRelationColumnName)
   }
 }
 
@@ -43,17 +47,21 @@ async function getDbMultiSelect(databaseId:string, column:string) : Promise<stri
   return multiSelectTags
 }
 
-async function getParentDbTags() :Promise<string[]> {
+async function getParentDbTags(databaseId: string, columnName: string) :Promise<any> {
   const res = await notion.databases.query({
-    database_id: parentDbId,
+    database_id: databaseId,
   })
-  const parentTags = res.results.map(page => {
-    const ms = page.properties.Tags as PropertyValueMultiSelect
+  const pages: any = []
+  res.results.map(page => {
+    const ms = page.properties[columnName] as PropertyValueMultiSelect
     const tagName = ms.multi_select.map(e => e.name)[0]
-    return tagName
+    pages.push({
+      tag: tagName,
+      pageId: page.id
+    })
   })
-  console.log(parentTags)
-  return parentTags
+  console.log(pages)
+  return pages
 }
 
 async function searchDbPagesWithTag(databaseId: string, columnName: string, tag: string) : Promise<any> {
@@ -86,17 +94,14 @@ async function searchDbPagesWithTag(databaseId: string, columnName: string, tag:
 }
 
 // @ts-ignore
-async function updateRelation(parentId, childId) {
+async function updateRelation(parentId: string, childIds: any[], relateColumnName: string) {
+  console.log(relateColumnName)
   await notion.pages.update({
     page_id: parentId,
-    properties: {
-      parentDbRelationColumnName: {
+    properties: {      
+      [relateColumnName]: {
         type: 'relation',
-        'relation': [
-          {
-            id: childId
-          }
-        ]
+        'relation': childIds
       }
     }
   })

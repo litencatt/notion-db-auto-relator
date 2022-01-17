@@ -1,0 +1,23 @@
+{
+  "name": "notion-db-auto-relator",
+  "version": "0.1.0",
+  "main": "relation.ts",
+  "author": "litencatt <ncl0709@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "sync": "ts-node ./index.ts",
+    "relation": "ts-node ./relation.ts"
+  },
+  "dependencies": {
+    "@notionhq/client": "0.4.9",
+    "dotenv": "^10.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "devDependencies": {
+    "@notion-stuff/v4-types": "^5.1.0",
+    "@types/js-yaml": "^4.0.1",
+    "@types/node": "^15.12.4",
+    "prettier": "^2.3.1"
+  }
+}

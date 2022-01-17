@@ -6,58 +6,46 @@ import dotenv from "dotenv"
 // defile self types
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
 
+// Settings
 dotenv.config()
+const parentDbId = process.env.PARENT_DB_ID as string
+const childDbId = process.env.CHILD_DB_ID as string
+const relatedColumnName = 'Tags'
+const relateToColumnName = 'Relation'
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
-//  logLevel: LogLevel.DEBUG,
+  logLevel: LogLevel.DEBUG,
 })
 
-// Hosting Task DB ID
-const parentDbId = process.env.PARENT_DB_ID as string
-const childDbId = process.env.CHILD_DB_ID as string
-const parentDbRelationColumnName = 'Relation'
-const tagColumnName = 'Tags'
+relateDb()
 
-relateParentDbToChildDb()
-
-async function relateParentDbToChildDb() {
-  const parentPages = await getParentDbTags(parentDbId, tagColumnName)
+async function relateDb() {
+  const parentPages = await getDbPages(parentDbId, relatedColumnName)
   for (const parentPage of parentPages) {
-    const childPages = await searchDbPagesWithTag(childDbId, tagColumnName, parentPage.tag)
+    const childPages = await searchDbPagesWithTag(childDbId, relatedColumnName, parentPage.tag)
     // @ts-ignore
     const childPageIds = []
     for (const childPageId of childPages.pageIds) {
       childPageIds.push({'id': childPageId})
     }
     //console.log(childPageIds)
-    await updateRelation(parentPage.pageId, childPageIds, parentDbRelationColumnName)
+    await updateRelation(parentPage.id, childPageIds, relateToColumnName)
   }
 }
 
-async function getDbMultiSelect(databaseId:string, column:string) : Promise<string[]> {
-  const res = await notion.databases.retrieve({
-    database_id: databaseId,
-  })
-  // console.log(res.properties)
-  const ms = res.properties[column] as MultiSelectProperty
-  const multiSelectTags = ms.multi_select.options.map(o => o.name)
-  console.log(multiSelectTags)
-
-  return multiSelectTags
-}
-
-async function getParentDbTags(databaseId: string, columnName: string) :Promise<any> {
+async function getDbPages(databaseId: string, columnName: string) :Promise<any> {
   const res = await notion.databases.query({
     database_id: databaseId,
   })
   const pages: any = []
   res.results.map(page => {
     const ms = page.properties[columnName] as PropertyValueMultiSelect
+    // multi-select but supports single select
     const tagName = ms.multi_select.map(e => e.name)[0]
     pages.push({
       tag: tagName,
-      pageId: page.id
+      id: page.id
     })
   })
   console.log(pages)
@@ -105,4 +93,16 @@ async function updateRelation(parentId: string, childIds: any[], relateColumnNam
       }
     }
   })
+}
+
+async function getDbMultiSelect(databaseId:string, column:string) : Promise<string[]> {
+  const res = await notion.databases.retrieve({
+    database_id: databaseId,
+  })
+  // console.log(res.properties)
+  const ms = res.properties[column] as MultiSelectProperty
+  const multiSelectTags = ms.multi_select.options.map(o => o.name)
+  console.log(multiSelectTags)
+
+  return multiSelectTags
 }

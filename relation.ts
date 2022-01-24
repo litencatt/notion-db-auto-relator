@@ -6,36 +6,6 @@ import dotenv from "dotenv"
 // defile self types
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
 
-// Settings
-dotenv.config()
-const settingsDbId = process.env.SETTINGS_DB_ID as string
-const parentDbId = process.env.PARENT_DB_ID as string
-const childDbId = process.env.CHILD_DB_ID as string
-const relatedColumnName = 'Tags'
-const relateToColumnName = 'Relation'
-
-const notion = new Client({
-  auth: process.env.NOTION_TOKEN,
-  logLevel: LogLevel.DEBUG,
-})
-
-//init()
-relateDb()
-
-async function relateDb() {
-  const parentPages = await getDbPages(parentDbId, relatedColumnName)
-  for (const parentPage of parentPages) {
-    const childPages = await searchDbPagesWithTag(childDbId, relatedColumnName, parentPage.tag)
-    // @ts-ignore
-    const childPageIds = []
-    for (const childPageId of childPages.pageIds) {
-      childPageIds.push({'id': childPageId})
-    }
-    //console.log(childPageIds)
-    await updateRelation(parentPage.id, childPageIds, relateToColumnName)
-  }
-}
-
 interface Setting {
   pDbId: string
   pJoinKeyColumnName: string
@@ -44,7 +14,42 @@ interface Setting {
   rColumnName: string
 }
 
-async function init() : Promise<any[]> {
+// Settings
+dotenv.config()
+const settingsDbId = process.env.SETTINGS_DB_ID as string
+
+const notion = new Client({
+  auth: process.env.NOTION_TOKEN,
+  logLevel: LogLevel.DEBUG,
+})
+
+relateDb()
+
+async function relateDb() {
+  const settings = await init()
+  for (const setting of settings) {
+    const parentDbId = setting.pDbId
+    const childDbId = setting.cDbId
+    const pJoinKey = setting.pJoinKeyColumnName
+    const cJoinKey = setting.cJoinKeyColumnName
+    const rColumnName = setting.rColumnName
+
+    const parentPages = await getDbPages(parentDbId, pJoinKey)
+    for (const parentPage of parentPages) {
+      const childPages = await searchDbPagesWithTag(childDbId, cJoinKey, parentPage.tag)
+      // @ts-ignore
+      const childPageIds = []
+      for (const childPageId of childPages.pageIds) {
+        childPageIds.push({'id': childPageId})
+      }
+      //console.log(childPageIds)
+      await updateRelation(parentPage.id, childPageIds, rColumnName)
+    }
+  }  
+}
+
+
+async function init() : Promise<Setting[]> {
   const settings: Setting[] = []
   const res = await notion.databases.query({
     database_id: settingsDbId,

@@ -14,4 +14,4 @@ jobs:
         uses: ./.github/actions/notion-db-auto-relator
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          SETTING_DB_ID: ${{ secrets.SETTINGS_DB_ID }}          
+          SETTINGS_DB_ID: ${{ secrets.SETTINGS_DB_ID }}          

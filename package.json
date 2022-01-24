@@ -1,12 +1,11 @@
 {
   "name": "notion-db-auto-relator",
   "version": "0.1.0",
-  "main": "relation.ts",
+  "main": "index.ts",
   "author": "litencatt <ncl0709@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "sync": "ts-node ./index.ts",
-    "relation": "ts-node ./relation.ts"
+    "start": "ts-node ./index.ts"
   },
   "dependencies": {
     "@notionhq/client": "0.4.9",

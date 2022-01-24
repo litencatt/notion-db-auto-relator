@@ -75,13 +75,13 @@ async function init(): Promise<Setting[]> {
     const relationColumn = page.properties['Relation Column'] as PropertyValueRichText
 
     settings.push({
-      enable: enable.checkbox,
       name: name.title.map(t => t.plain_text)[0],
+      enable: enable.checkbox,
       pDbId: getPlainTextFirst(parentDbIdColumn),
       pJoinKeyColumnName: getPlainTextFirst(parentJoinKeyColumn),
       cDbId: getPlainTextFirst(childDb),
       cJoinKeyColumnName: getPlainTextFirst(childJoinKeyColumn),
-      rColumnName: getPlainTextFirst(relationColumn),
+      pRelationColumnName: getPlainTextFirst(relationColumn),
     })
   })
 

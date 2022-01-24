@@ -2,15 +2,19 @@ import { Client, LogLevel } from "@notionhq/client"
 import {
   PropertyValueTitle,
   PropertyValueMultiSelect,
-  PropertyValueRichText
+  PropertyValueRichText,
+  ExtractedPropertyValue
 } from "@notion-stuff/v4-types"
 import { config } from "dotenv"
 
 // Define type myself
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
+type PropertyValueCheckBox = ExtractedPropertyValue<'checkbox'>;
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
 
 interface Setting {
+  enable: boolean
+  name: string
   pDbId: string
   pJoinKeyColumnName: string
   cDbId: string
@@ -31,12 +35,19 @@ relateDb()
 async function relateDb() {
   const settings = await init()
   for (const setting of settings) {
+    const enable = setting.enable
     const parentDbId = setting.pDbId
     const childDbId = setting.cDbId
     const pJoinKey = setting.pJoinKeyColumnName
     const cJoinKey = setting.cJoinKeyColumnName
     const rColumnName = setting.rColumnName
 
+    if (!enable) {
+      console.log(`Name: ${setting.name} is skipped`)
+      continue
+    }
+
+    console.log(`Name: ${setting.name} is start`)
     const parentPages = await getDbPages(parentDbId, pJoinKey)
     for (const parentPage of parentPages) {
       const childPages = await searchDbPagesWithTag(childDbId, cJoinKey, parentPage.tag)
@@ -48,20 +59,22 @@ async function relateDb() {
       //console.log(childPageIds)
       await updateRelation(parentPage.id, childPageIds, rColumnName)
     }
+    console.log(`Name: ${setting.name} is end`)
   }
 }
-
 
 async function init(): Promise<Setting[]> {
   const settings: Setting[] = []
   const res = await notion.databases.query({
     database_id: settingsDbId,
   })
-  console.log(res)
+  // console.log(res)
 
   res.results.map(page => {
-    console.log(page.properties)
-
+    // console.log(page.properties)
+ 
+    const enable = page.properties['Enable'] as PropertyValueCheckBox
+    const name = page.properties['Name'] as PropertyValueTitle
     const parentDbIdColumn = page.properties['Parent DB Id'] as PropertyValueRichText
     const parentJoinKeyColumn = page.properties['Parent JoinKey Column'] as PropertyValueRichText
     const childDb = page.properties['Child DB Id'] as PropertyValueRichText
@@ -69,6 +82,8 @@ async function init(): Promise<Setting[]> {
     const relationColumn = page.properties['Relation Column'] as PropertyValueRichText
 
     settings.push({
+      enable: enable.checkbox,
+      name: name.title.map(t => t.plain_text)[0],
       pDbId: getPlainTextFirst(parentDbIdColumn),
       pJoinKeyColumnName: getPlainTextFirst(parentJoinKeyColumn),
       cDbId: getPlainTextFirst(childDb),

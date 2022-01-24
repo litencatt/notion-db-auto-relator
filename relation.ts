@@ -13,13 +13,13 @@ type PropertyValueCheckBox = ExtractedPropertyValue<'checkbox'>;
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
 
 interface Setting {
-  enable: boolean
   name: string
+  enable: boolean
   pDbId: string
   pJoinKeyColumnName: string
+  pRelationColumnName: string
   cDbId: string
   cJoinKeyColumnName: string
-  rColumnName: string
 }
 
 config()
@@ -35,29 +35,22 @@ relateDb()
 async function relateDb() {
   const settings = await init()
   for (const setting of settings) {
-    const enable = setting.enable
-    const parentDbId = setting.pDbId
-    const childDbId = setting.cDbId
-    const pJoinKey = setting.pJoinKeyColumnName
-    const cJoinKey = setting.cJoinKeyColumnName
-    const rColumnName = setting.rColumnName
-
-    if (!enable) {
+    if (!setting.enable) {
       console.log(`Name: ${setting.name} is skipped`)
       continue
     }
 
     console.log(`Name: ${setting.name} is start`)
-    const parentPages = await getDbPages(parentDbId, pJoinKey)
+    const parentPages = await getDbPages(setting.pDbId, setting.pJoinKeyColumnName)
     for (const parentPage of parentPages) {
-      const childPages = await searchDbPagesWithTag(childDbId, cJoinKey, parentPage.tag)
+      const childPages = await searchDbPagesWithTag(setting.cDbId, setting.cJoinKeyColumnName, parentPage.tag)
       // @ts-ignore
       const childPageIds = []
       for (const childPageId of childPages.pageIds) {
         childPageIds.push({ 'id': childPageId })
       }
       //console.log(childPageIds)
-      await updateRelation(parentPage.id, childPageIds, rColumnName)
+      await updateRelation(parentPage.id, childPageIds, setting.pRelationColumnName)
     }
     console.log(`Name: ${setting.name} is end`)
   }

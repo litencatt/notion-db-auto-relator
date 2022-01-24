@@ -1,7 +1,7 @@
 import { Client, LogLevel } from "@notionhq/client"
+import { config } from "dotenv"
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { PropertyValueTitle, PropertyValueMultiSelect, PropertyValueRichText } from "@notion-stuff/v4-types"
-import dotenv from "dotenv"
 
 // defile self types
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
@@ -15,7 +15,7 @@ interface Setting {
 }
 
 // Settings
-dotenv.config()
+config()
 const settingsDbId = process.env.SETTINGS_DB_ID as string
 
 const notion = new Client({

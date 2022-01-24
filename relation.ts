@@ -27,7 +27,7 @@ const settingsDbId = process.env.SETTINGS_DB_ID as string
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
-  logLevel: LogLevel.DEBUG,
+  // logLevel: LogLevel.DEBUG,
 })
 
 relateDb()
@@ -92,7 +92,7 @@ async function init(): Promise<Setting[]> {
     })
   })
 
-  settings.map(e => console.log(e))
+  // settings.map(e => console.log(e))
   return settings
 }
 
@@ -156,14 +156,14 @@ async function searchDbPagesWithTag(databaseId: string, columnName: string, tag:
     //console.log(`tag:${tag}, name:${name.title.map(t => t.plain_text)}, pageId:${page.id}`)
     pages.pageIds.push(page.id)
   })
-  console.log(pages)
+  // console.log(pages)
 
   return pages
 }
 
 // @ts-ignore
 async function updateRelation(parentId: string, childIds: any[], relateColumnName: string) {
-  console.log(relateColumnName)
+  // console.log(relateColumnName)
   await notion.pages.update({
     page_id: parentId,
     properties: {
@@ -182,7 +182,7 @@ async function getDbMultiSelect(databaseId: string, column: string): Promise<str
   // console.log(res.properties)
   const ms = res.properties[column] as MultiSelectProperty
   const multiSelectTags = ms.multi_select.options.map(o => o.name)
-  console.log(multiSelectTags)
+  // console.log(multiSelectTags)
 
   return multiSelectTags
 }

@@ -1,9 +1,9 @@
 import { Client, LogLevel } from "@notionhq/client"
 import { config } from "dotenv"
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { PropertyValueTitle, PropertyValueMultiSelect, PropertyValueRichText } from "@notion-stuff/v4-types"
 
-// defile self types
+// Define type myself
+import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { type: "multi_select" }>;
 
 interface Setting {

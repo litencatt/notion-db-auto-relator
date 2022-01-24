@@ -1,0 +1,5 @@
+name: 'Notion DB Auto Relator'
+description: 'Notion Automatically Relate Pages'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

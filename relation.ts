@@ -1,6 +1,6 @@
 import { Client, LogLevel } from "@notionhq/client"
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
-import { PropertyValueTitle, PropertyValueMultiSelect } from "@notion-stuff/v4-types"
+import { PropertyValueTitle, PropertyValueMultiSelect, PropertyValueRichText } from "@notion-stuff/v4-types"
 import dotenv from "dotenv"
 
 // defile self types
@@ -8,6 +8,7 @@ type MultiSelectProperty = Extract<GetDatabaseResponse["properties"][string], { 
 
 // Settings
 dotenv.config()
+const settingsDbId = process.env.SETTINGS_DB_ID as string
 const parentDbId = process.env.PARENT_DB_ID as string
 const childDbId = process.env.CHILD_DB_ID as string
 const relatedColumnName = 'Tags'
@@ -18,6 +19,7 @@ const notion = new Client({
   logLevel: LogLevel.DEBUG,
 })
 
+//init()
 relateDb()
 
 async function relateDb() {
@@ -32,6 +34,47 @@ async function relateDb() {
     //console.log(childPageIds)
     await updateRelation(parentPage.id, childPageIds, relateToColumnName)
   }
+}
+
+interface Setting {
+  pDbId: string
+  pJoinKeyColumnName: string
+  cDbId: string
+  cJoinKeyColumnName: string
+  rColumnName: string
+}
+
+async function init() : Promise<any[]> {
+  const settings: Setting[] = []
+  const res = await notion.databases.query({
+    database_id: settingsDbId,
+  })
+  console.log(res)
+
+  res.results.map(page => {
+    console.log(page.properties)
+
+    const parentDbIdColumn = page.properties['Parent DB Id'] as PropertyValueRichText
+    const parentJoinKeyColumn = page.properties['Parent JoinKey Column'] as PropertyValueRichText
+    const childDb = page.properties['Child DB Id'] as PropertyValueRichText
+    const childJoinKeyColumn = page.properties['Child JoinKey Column'] as PropertyValueRichText
+    const relationColumn = page.properties['Relation Column'] as PropertyValueRichText
+
+    settings.push({
+      pDbId: getPlainTextFirst(parentDbIdColumn),
+      pJoinKeyColumnName: getPlainTextFirst(parentJoinKeyColumn),
+      cDbId: getPlainTextFirst(childDb),
+      cJoinKeyColumnName: getPlainTextFirst(childJoinKeyColumn),
+      rColumnName: getPlainTextFirst(relationColumn),
+    })
+  })
+
+  settings.map(e => console.log(e))
+  return settings
+}
+
+function getPlainTextFirst(prop: PropertyValueRichText) {
+  return prop.rich_text.map(e => e.plain_text)[0]
 }
 
 async function getDbPages(databaseId: string, columnName: string) :Promise<any> {

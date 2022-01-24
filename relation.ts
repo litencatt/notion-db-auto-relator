@@ -106,15 +106,29 @@ async function getDbPages(databaseId: string, columnName: string): Promise<any> 
   })
   const pages: any = []
   res.results.map(page => {
-    const ms = page.properties[columnName] as PropertyValueMultiSelect
-    // multi-select but supports single select
-    const tagName = ms.multi_select.map(e => e.name)[0]
-    pages.push({
-      tag: tagName,
-      id: page.id
+    Object.entries(page.properties).forEach(([name, property]) => {
+      if (name !== columnName) {
+        return
+      }
+      if (property.type === "multi_select") {
+        const msProp = property as PropertyValueMultiSelect
+        // multi-select but supports single select
+        const tagName = msProp.multi_select.map(e => e.name)[0]
+        pages.push({
+          tag: tagName,
+          id: page.id
+        })
+      } else if (property.type === "title") {
+        const tProp = property as PropertyValueTitle
+        const tagName = tProp.title.map(t => t.plain_text)[0]
+        pages.push({
+          tag: tagName,
+          id: page.id
+        })
+      }
     })
   })
-  console.log(pages)
+  // console.log(pages)
   return pages
 }
 

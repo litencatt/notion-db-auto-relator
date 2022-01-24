@@ -4,4 +4,4 @@ USER node
 WORKDIR /app
 COPY ./ /app/
 
-CMD cd /app && make start
+CMD cd /app && yarn && make start

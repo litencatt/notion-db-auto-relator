@@ -1,7 +1,11 @@
 FROM node:latest
 
-USER node
+
 WORKDIR /app
 COPY ./ /app/
 
-CMD cd /app && yarn && make start
+RUN yarn config set unsafe-perm true
+RUN yarn install --force
+
+USER node
+CMD cd /app && make start

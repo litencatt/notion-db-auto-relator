@@ -10,15 +10,15 @@
 - 以下の様に設定用DBに値を設定する
   - ![image](https://user-images.githubusercontent.com/17349045/150769246-ffd10037-cdea-41ff-ab10-b32d0ad67d30.png)
 
-#### Settings1
-ParentのName と ChildのParent NameをRelation設定した場合
+#### 設定例1
+Parentの Name カラムと同じ値がParent Nameに設定されたChildDBのpageをParentDBにRelationしたい場合
 
 Before |  After
 -- | --
 ![image](https://user-images.githubusercontent.com/17349045/150768433-28ea1a09-9698-4806-b9df-7f7dd944d043.png)|![image](https://user-images.githubusercontent.com/17349045/150768346-3f38c5a4-8163-4f13-b6e7-98da6225784d.png)
 
-#### Settings2
-ParentのTags と ChildのParent TagsをRelation設定した場合
+#### 設定例2
+Parentの Tags カラムと同じ値がParent Tagsに設定されたChildDBのpageをParentDBにRelationしたい場合
 
 Before | After
 -- | --

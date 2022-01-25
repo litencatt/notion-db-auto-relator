@@ -3,7 +3,7 @@
 
 - Auto RelationしたいParentとなるDB(以降ParentDB)とChildとなるDB(ChildDB)を作成する
 - 設定用DBを複製する
-  - https://www.notion.so/3dd1ccec8f0740cc90600de413261fdc
+  - https://litencatt.notion.site/3dd1ccec8f0740cc90600de413261fdc
 - NotionのAPI Integrationを作成する
   - https://www.notion.so/my-integrations
 - 作成したNotion API Integrationを複製した設定用DB、ParentDB、ChildDBにInviteする  

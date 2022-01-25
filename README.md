@@ -1,8 +1,8 @@
 ## Usage
-### Setup IN Notion
+### Setup in Notion
 
-- Auto RelationしたいParentとなるDB(以降ParentDB)とChildとなるDB(ChildDB)を作成する
-- 設定用DBを複製する
+- Auto RelationしたいParentとなるDB(以降ParentDB)とChildとなるDB(ChildDB)を作成しRelationを作成しておく
+- 以下URLの設定用DBを複製する
   - https://litencatt.notion.site/3dd1ccec8f0740cc90600de413261fdc
 - NotionのAPI Integrationを作成する
   - https://www.notion.so/my-integrations
@@ -25,7 +25,8 @@ Before | After
 ![image](https://user-images.githubusercontent.com/17349045/150768768-2c5f7aa0-a55f-4065-9a3a-06bdbb52d9f7.png)|![image](https://user-images.githubusercontent.com/17349045/150768816-52a0717b-4e69-430b-b8a2-751f8fe14543.png)
 
 ### Setup GitHub Actions example
-    
+以下のようにGitHub Actionsを任意のレポジトリに設定して定期的に実行するようにする
+
 ```yaml
 on:
   schedule:

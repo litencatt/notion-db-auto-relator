@@ -16,10 +16,9 @@ interface Setting {
   name: string
   enable: boolean
   pDbId: string
-  pJoinKeyColumnName: string
-  pRelationColumnName: string
   cDbId: string
-  cJoinKeyColumnName: string
+  relationKeys: string
+  updateProp: string
 }
 
 interface ParentPage {
@@ -51,15 +50,15 @@ async function relateDb() {
     }
 
     console.log(`Name: ${setting.name} is start`)
-    const parentPages = await getParentPages(setting.pDbId, setting.pJoinKeyColumnName)
-    for (const parentPage of parentPages) {
-      const childPageIds = await searchDbPageIds(setting.cDbId, parentPage)
-      const updateRelationIds = []
+    const parentPages = await getParentPages(setting.pDbId, setting.relationKeys)
+    for (const parent of parentPages) {
+      const childPageIds = await searchDbPageIds(setting.cDbId, parent)
+      const relationPageIds = []
       for (const childPageId of childPageIds) {
-        updateRelationIds.push({ 'id': childPageId })
+        relationPageIds.push({ 'id': childPageId })
       }
 
-      await updateRelation(parentPage.page_id, updateRelationIds, setting.pRelationColumnName)
+      await updateRelation(parent.page_id, relationPageIds, setting.updateProp)
     }
     console.log(`Name: ${setting.name} is end`)
   }
@@ -75,22 +74,20 @@ async function init(): Promise<Setting[]> {
   res.results.map(page => {
     // console.log(page.properties)
  
-    const enable = page.properties['Enable'] as PropertyValueCheckBox
-    const name = page.properties['Name'] as PropertyValueTitle
-    const parentDbIdColumn = page.properties['Parent DB Id'] as PropertyValueRichText
-    const parentJoinKeyColumn = page.properties['Parent JoinKey Column'] as PropertyValueRichText
-    const childDb = page.properties['Child DB Id'] as PropertyValueRichText
-    const childJoinKeyColumn = page.properties['Child JoinKey Column'] as PropertyValueRichText
-    const relationColumn = page.properties['Relation Column'] as PropertyValueRichText
+    const name            = page.properties['Name'] as PropertyValueTitle
+    const enable          = page.properties['Enable'] as PropertyValueCheckBox
+    const parentDbIdProp  = page.properties['Parent DB Id'] as PropertyValueRichText
+    const childDbIdProp   = page.properties['Child DB Id'] as PropertyValueRichText
+    const relationKeysProp = page.properties['Relation Keys'] as PropertyValueRichText
+    const autoUpdateProp  = page.properties['Auto Update Property in Parent DB'] as PropertyValueRichText
 
     settings.push({
       name: name.title.map(t => t.plain_text)[0],
       enable: enable.checkbox,
-      pDbId: getPlainTextFirst(parentDbIdColumn),
-      pJoinKeyColumnName: getPlainTextFirst(parentJoinKeyColumn),
-      cDbId: getPlainTextFirst(childDb),
-      cJoinKeyColumnName: getPlainTextFirst(childJoinKeyColumn),
-      pRelationColumnName: getPlainTextFirst(relationColumn),
+      pDbId: getPlainTextFirst(parentDbIdProp),
+      cDbId: getPlainTextFirst(childDbIdProp),
+      relationKeys: getPlainTextFirst(relationKeysProp),
+      updateProp: getPlainTextFirst(autoUpdateProp),
     })
   })
 

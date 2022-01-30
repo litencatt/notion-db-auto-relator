@@ -73,7 +73,7 @@ async function init(): Promise<Setting[]> {
 
   res.results.map(page => {
     // console.log(page.properties)
- 
+
     const name            = page.properties['Name'] as PropertyValueTitle
     const enable          = page.properties['Enable'] as PropertyValueCheckBox
     const parentDbIdProp  = page.properties['Parent DB Id'] as PropertyValueRichText
@@ -119,11 +119,6 @@ async function getParentPages(databaseId: string, columnName: string): Promise<P
         const msProp = property as PropertyValueMultiSelect
         // multi-select but supports single select
         const val = msProp.multi_select.map(e => e.name)[0]
-        tmp.relation_keys.push({key: name, value: val})
-      } else if (property.type === "select") {
-        const sProp = property as PropertyValueSelect
-        // multi-select but supports single select
-        const val = sProp.select?.name
         tmp.relation_keys.push({key: name, value: val})
       } else if (property.type === "title") {
         const tProp = property as PropertyValueTitle

@@ -8,21 +8,15 @@
   - https://www.notion.so/my-integrations
 - 作成したNotion API Integrationを複製した設定用DB、ParentDB、ChildDBにInviteする  
 - 以下の様に設定用DBに値を設定する
-  - ![image](https://user-images.githubusercontent.com/17349045/150769246-ffd10037-cdea-41ff-ab10-b32d0ad67d30.png)
 
-#### 設定例1
-Parentの Name カラムと同じ値がParent Nameに設定されたChildDBのpageをParentDBにRelationしたい場合
+![image](https://user-images.githubusercontent.com/17349045/151688567-69fd64a8-9c1f-4e71-89f6-1d72af422b6e.png)
 
-Before |  After
--- | --
-![image](https://user-images.githubusercontent.com/17349045/150768433-28ea1a09-9698-4806-b9df-7f7dd944d043.png)|![image](https://user-images.githubusercontent.com/17349045/150768346-3f38c5a4-8163-4f13-b6e7-98da6225784d.png)
+### Before Auto Relation
+![image](https://user-images.githubusercontent.com/17349045/151688613-9fba23e2-98fa-41ff-9227-a69c04c1a7a1.png)
 
-#### 設定例2
-Parentの Tags カラムと同じ値がParent Tagsに設定されたChildDBのpageをParentDBにRelationしたい場合
+### After Auto Relation
+![image](https://user-images.githubusercontent.com/17349045/151688671-8180efa3-e791-422d-8913-a62f8fc6c1f4.png)
 
-Before | After
--- | --
-![image](https://user-images.githubusercontent.com/17349045/150768768-2c5f7aa0-a55f-4065-9a3a-06bdbb52d9f7.png)|![image](https://user-images.githubusercontent.com/17349045/150768816-52a0717b-4e69-430b-b8a2-751f8fe14543.png)
 
 ### Setup GitHub Actions example
 以下のようにGitHub Actionsを任意のレポジトリに設定して定期的に実行するようにする

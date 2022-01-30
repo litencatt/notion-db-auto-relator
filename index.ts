@@ -22,6 +22,16 @@ interface Setting {
   cJoinKeyColumnName: string
 }
 
+interface ParentPage {
+  page_id: string
+  relation_keys: RelationKey[]
+}
+
+interface RelationKey {
+  key: string
+  value: string | undefined
+}
+
 config()
 const settingsDbId = process.env.SETTINGS_DB_ID as string
 
@@ -41,16 +51,15 @@ async function relateDb() {
     }
 
     console.log(`Name: ${setting.name} is start`)
-    const parentPages = await getDbPages(setting.pDbId, setting.pJoinKeyColumnName)
+    const parentPages = await getParentPages(setting.pDbId, setting.pJoinKeyColumnName)
     for (const parentPage of parentPages) {
-      const childPages = await searchDbPagesWithTag(setting.cDbId, setting.cJoinKeyColumnName, parentPage.tag)
-      // @ts-ignore
-      const childPageIds = []
-      for (const childPageId of childPages.pageIds) {
-        childPageIds.push({ 'id': childPageId })
+      const childPageIds = await searchDbPageIds(setting.cDbId, parentPage)
+      const updateRelationIds = []
+      for (const childPageId of childPageIds) {
+        updateRelationIds.push({ 'id': childPageId })
       }
-      //console.log(childPageIds)
-      await updateRelation(parentPage.id, childPageIds, setting.pRelationColumnName)
+
+      await updateRelation(parentPage.page_id, updateRelationIds, setting.pRelationColumnName)
     }
     console.log(`Name: ${setting.name} is end`)
   }
@@ -93,65 +102,74 @@ function getPlainTextFirst(prop: PropertyValueRichText) {
   return prop.rich_text.map(e => e.plain_text)[0]
 }
 
-async function getDbPages(databaseId: string, columnName: string): Promise<any> {
+async function getParentPages(databaseId: string, columnName: string): Promise<ParentPage[]> {
   const res = await notion.databases.query({
     database_id: databaseId,
   })
-  const pages: any = []
+
+  const pages:ParentPage[] = []
+  const propertyNames = columnName.split(",")
   res.results.map(page => {
+    const tmp: ParentPage = {
+      page_id: page.id,
+      relation_keys: []
+    }
     Object.entries(page.properties).forEach(([name, property]) => {
-      if (name !== columnName) {
+      if (!propertyNames.includes(name)) {
         return
       }
       if (property.type === "multi_select") {
         const msProp = property as PropertyValueMultiSelect
         // multi-select but supports single select
-        const tagName = msProp.multi_select.map(e => e.name)[0]
-        pages.push({
-          tag: tagName,
-          id: page.id
-        })
+        const val = msProp.multi_select.map(e => e.name)[0]
+        tmp.relation_keys.push({key: name, value: val})
+      } else if (property.type === "select") {
+        const sProp = property as PropertyValueSelect
+        // multi-select but supports single select
+        const val = sProp.select?.name
+        tmp.relation_keys.push({key: name, value: val})
       } else if (property.type === "title") {
         const tProp = property as PropertyValueTitle
-        const tagName = tProp.title.map(t => t.plain_text)[0]
-        pages.push({
-          tag: tagName,
-          id: page.id
-        })
+        const val = tProp.title.map(t => t.plain_text)[0]
+        tmp.relation_keys.push({key: name, value: val})
       }
     })
+    pages.push(tmp)
   })
   // console.log(pages)
+
   return pages
 }
 
-async function searchDbPagesWithTag(databaseId: string, columnName: string, tag: string): Promise<any> {
+async function searchDbPageIds(databaseId: string, parentPage:ParentPage) :Promise<string[]> {
+  const filterCondition:any = []
+  parentPage.relation_keys.map(rkey => filterCondition.push({
+    property: rkey.key,
+    multi_select: {
+      contains: rkey.value
+    }
+  }))
+
   const res = await notion.databases.query({
     database_id: databaseId,
     filter: {
-      or: [
-        {
-          property: columnName,
-          multi_select: {
-            contains: tag
-          }
-        }
-      ]
+      and: filterCondition
     }
   })
 
-  let pages: any = {
-    tag: tag,
-    pageIds: []
+  if (res.results == null) {
+    return []
   }
+
+  const pageIds: string[] = []
   res.results.map(page => {
     const name = page.properties.Name as PropertyValueTitle
     //console.log(`tag:${tag}, name:${name.title.map(t => t.plain_text)}, pageId:${page.id}`)
-    pages.pageIds.push(page.id)
+    pageIds.push(page.id)
   })
   // console.log(pages)
 
-  return pages
+  return pageIds
 }
 
 // @ts-ignore

@@ -178,12 +178,12 @@ async function updateRelation(parentId: string, childIds: any[], relateColumnNam
   })
 }
 
-async function getDbMultiSelect(databaseId: string, column: string): Promise<string[]> {
+async function getDbMultiSelect(databaseId: string, propName: string): Promise<string[]> {
   const res = await notion.databases.retrieve({
     database_id: databaseId,
   })
   // console.log(res.properties)
-  const ms = res.properties[column] as MultiSelectProperty
+  const ms = res.properties[propName] as MultiSelectProperty
   const multiSelectTags = ms.multi_select.options.map(o => o.name)
   // console.log(multiSelectTags)
 

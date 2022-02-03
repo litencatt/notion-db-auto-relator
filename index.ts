@@ -28,7 +28,7 @@ interface ParentPage {
 
 interface RelationKey {
   key: string
-  value: string | undefined
+  value: string
 }
 
 config()

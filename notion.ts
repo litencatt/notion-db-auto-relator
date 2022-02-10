@@ -5,7 +5,11 @@ import {
   PropertyValueRichText,
 } from '@notion-stuff/v4-types'
 import { ParentPage } from './interface'
-import { QueryDatabaseResponse } from '@notionhq/client/build/src/api-endpoints'
+import {
+  queryDatabase,
+  QueryDatabaseParameters,
+  QueryDatabaseResponse,
+} from '@notionhq/client/build/src/api-endpoints'
 
 // Define type myself
 import { GetDatabaseResponse } from '@notionhq/client/build/src/api-endpoints'
@@ -18,23 +22,21 @@ export const getPlainTextFirst = (prop: PropertyValueRichText) => {
   return prop.rich_text.map((e) => e.plain_text)[0]
 }
 
-export const getDbPages = async (
-  notion: Client,
-  databaseId: string
-): Promise<QueryDatabaseResponse> => {
-  const res = await notion.databases.query({
-    database_id: databaseId,
-  })
-  return res
-}
-
 export const databaseQuery = async (
   notion: Client,
-  databaseId: string
+  databaseId: string,
+  filter: QueryDatabaseParameters['filter'] | null
 ): Promise<QueryDatabaseResponse['results'][]> => {
   const resArr = []
+  if (filter == null) {
+    filter = {
+      or: [],
+      and: [],
+    } as QueryDatabaseParameters['filter']
+  }
   const res = await notion.databases.query({
     database_id: databaseId,
+    filter: filter,
   })
   resArr.push(res.results)
 
@@ -47,6 +49,7 @@ export const databaseQuery = async (
     }
     const tmp = await notion.databases.query({
       database_id: databaseId,
+      filter: filter,
       start_cursor: nextCursor,
     })
     hasMore = tmp.has_more
@@ -63,7 +66,7 @@ export const getParentPages = async (
 ): Promise<ParentPage[]> => {
   const pages: ParentPage[] = []
   const propertyNames = columnName.split(',')
-  const results = await databaseQuery(notion, databaseId)
+  const results = await databaseQuery(notion, databaseId, null)
   results.map((result) => {
     result.map((page) => {
       const tmp: ParentPage = {
@@ -108,29 +111,18 @@ export const searchDbPageIds = async (
   )
   console.log(filterCondition)
 
-  const res = await notion.databases.query({
-    database_id: databaseId,
-    filter: {
-      and: filterCondition,
-    },
-  })
-
-  if (res.results == null) {
-    return []
-  }
-
+  const filter = { and: filterCondition }
+  const results = await databaseQuery(notion, databaseId, filter)
   const pageIds: string[] = []
-  res.results.map((page) => {
-    const name = page.properties.Name as PropertyValueTitle
-    //console.log(`tag:${tag}, name:${name.title.map(t => t.plain_text)}, pageId:${page.id}`)
-    pageIds.push(page.id)
+  results.map((result) => {
+    result.map((page) => {
+      pageIds.push(page.id)
+    })
   })
-  // console.log(pages)
 
   return pageIds
 }
 
-// @ts-ignore
 export const updateRelation = async (
   notion: Client,
   parentId: string,
@@ -147,20 +139,4 @@ export const updateRelation = async (
       },
     },
   })
-}
-
-export const getDbMultiSelect = async (
-  notion: Client,
-  databaseId: string,
-  propName: string
-): Promise<string[]> => {
-  const res = await notion.databases.retrieve({
-    database_id: databaseId,
-  })
-  // console.log(res.properties)
-  const ms = res.properties[propName] as MultiSelectProperty
-  const multiSelectTags = ms.multi_select.options.map((o) => o.name)
-  console.log(multiSelectTags)
-
-  return multiSelectTags
 }

@@ -6,7 +6,7 @@ import {
   searchDbPageIds,
   updateRelation,
   getPlainTextFirst,
-  getDbPages,
+  databaseQuery,
 } from './notion'
 import {
   PropertyValueTitle,
@@ -46,7 +46,7 @@ async function relateDb() {
       setting.pDbId,
       setting.relationKeys
     )
-    console.log(parentPages)
+
     for (const parent of parentPages) {
       parent.relation_keys.map((e) => e.value)
       const childPageIds = await searchDbPageIds(notion, setting.cDbId, parent)
@@ -68,34 +68,35 @@ async function relateDb() {
 
 async function init(): Promise<Setting[]> {
   const settings: Setting[] = []
-  const res = await getDbPages(notion, settingsDbId)
+  const results = await databaseQuery(notion, settingsDbId, null)
   // console.log(res)
 
-  res.results.map((page) => {
-    // console.log(page.properties)
+  results.map((result) => {
+    result.map((page) => {
+      // console.log(page.properties)
+      const name = page.properties['Name'] as PropertyValueTitle
+      const enable = page.properties['Enable'] as PropertyValueCheckBox
+      const parentDbIdProp = page.properties[
+        'Parent DB Id'
+      ] as PropertyValueRichText
+      const childDbIdProp = page.properties[
+        'Child DB Id'
+      ] as PropertyValueRichText
+      const relationKeysProp = page.properties[
+        'Relation Keys'
+      ] as PropertyValueRichText
+      const autoUpdateProp = page.properties[
+        'Auto Update Property in Parent DB'
+      ] as PropertyValueRichText
 
-    const name = page.properties['Name'] as PropertyValueTitle
-    const enable = page.properties['Enable'] as PropertyValueCheckBox
-    const parentDbIdProp = page.properties[
-      'Parent DB Id'
-    ] as PropertyValueRichText
-    const childDbIdProp = page.properties[
-      'Child DB Id'
-    ] as PropertyValueRichText
-    const relationKeysProp = page.properties[
-      'Relation Keys'
-    ] as PropertyValueRichText
-    const autoUpdateProp = page.properties[
-      'Auto Update Property in Parent DB'
-    ] as PropertyValueRichText
-
-    settings.push({
-      name: name.title.map((t) => t.plain_text)[0],
-      enable: enable.checkbox,
-      pDbId: getPlainTextFirst(parentDbIdProp),
-      cDbId: getPlainTextFirst(childDbIdProp),
-      relationKeys: getPlainTextFirst(relationKeysProp),
-      updateProp: getPlainTextFirst(autoUpdateProp),
+      settings.push({
+        name: name.title.map((t) => t.plain_text)[0],
+        enable: enable.checkbox,
+        pDbId: getPlainTextFirst(parentDbIdProp),
+        cDbId: getPlainTextFirst(childDbIdProp),
+        relationKeys: getPlainTextFirst(relationKeysProp),
+        updateProp: getPlainTextFirst(autoUpdateProp),
+      })
     })
   })
 

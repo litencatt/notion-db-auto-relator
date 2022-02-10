@@ -28,41 +28,67 @@ export const getDbPages = async (
   return res
 }
 
+export const databaseQuery = async (
+  notion: Client,
+  databaseId: string
+): Promise<QueryDatabaseResponse['results'][]> => {
+  const resArr = []
+  const res = await notion.databases.query({
+    database_id: databaseId,
+  })
+  resArr.push(res.results)
+
+  // fetch all pages
+  let hasMore = res.has_more
+  let nextCursor = res.next_cursor
+  while (true) {
+    if (!hasMore || nextCursor == null) {
+      break
+    }
+    const tmp = await notion.databases.query({
+      database_id: databaseId,
+      start_cursor: nextCursor,
+    })
+    hasMore = tmp.has_more
+    nextCursor = tmp.next_cursor
+    resArr.push(tmp.results)
+  }
+  return resArr
+}
+
 export const getParentPages = async (
   notion: Client,
   databaseId: string,
   columnName: string
 ): Promise<ParentPage[]> => {
-  const res = await notion.databases.query({
-    database_id: databaseId,
-  })
-
   const pages: ParentPage[] = []
   const propertyNames = columnName.split(',')
-  res.results.map((page) => {
-    const tmp: ParentPage = {
-      page_id: page.id,
-      relation_keys: [],
-    }
-    Object.entries(page.properties).forEach(([name, property]) => {
-      if (!propertyNames.includes(name)) {
-        return
+  const results = await databaseQuery(notion, databaseId)
+  results.map((result) => {
+    result.map((page) => {
+      const tmp: ParentPage = {
+        page_id: page.id,
+        relation_keys: [],
       }
-      if (property.type === 'multi_select') {
-        const msProp = property as PropertyValueMultiSelect
-        // multi-select but supports single select
-        const val = msProp.multi_select.map((e) => e.name)[0]
-        tmp.relation_keys.push({ key: name, value: val })
-      } else if (property.type === 'title') {
-        const tProp = property as PropertyValueTitle
-        const val = tProp.title.map((t) => t.plain_text)[0]
-        tmp.relation_keys.push({ key: name, value: val })
-      }
+      Object.entries(page.properties).forEach(([name, property]) => {
+        if (!propertyNames.includes(name)) {
+          return
+        }
+        if (property.type === 'multi_select') {
+          const msProp = property as PropertyValueMultiSelect
+          // multi-select but supports single select
+          const val = msProp.multi_select.map((e) => e.name)[0]
+          tmp.relation_keys.push({ key: name, value: val })
+        } else if (property.type === 'title') {
+          const tProp = property as PropertyValueTitle
+          const val = tProp.title.map((t) => t.plain_text)[0]
+          tmp.relation_keys.push({ key: name, value: val })
+        }
+      })
+      pages.push(tmp)
     })
-    pages.push(tmp)
+    // console.log(pages)
   })
-  // console.log(pages)
-
   return pages
 }
 

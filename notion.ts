@@ -8,14 +8,8 @@ import { ParentPage, PropetyTypeInfo } from './interface'
 import {
   QueryDatabaseParameters,
   QueryDatabaseResponse,
+  GetDatabaseResponse,
 } from '@notionhq/client/build/src/api-endpoints'
-
-// Define type myself
-import { GetDatabaseResponse } from '@notionhq/client/build/src/api-endpoints'
-type MultiSelectProperty = Extract<
-  GetDatabaseResponse['properties'][string],
-  { type: 'multi_select' }
->
 
 export const getPlainTextFirst = (prop: PropertyValueRichText) => {
   return prop.rich_text.map((e) => e.plain_text)[0]

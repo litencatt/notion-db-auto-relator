@@ -17,12 +17,7 @@ import {
 } from '@notion-stuff/v4-types'
 
 // Define type myself
-import { GetDatabaseResponse } from '@notionhq/client/build/src/api-endpoints'
 type PropertyValueCheckBox = ExtractedPropertyValue<'checkbox'>
-type MultiSelectProperty = Extract<
-  GetDatabaseResponse['properties'][string],
-  { type: 'multi_select' }
->
 
 config()
 const settingsDbId = process.env.SETTINGS_DB_ID as string

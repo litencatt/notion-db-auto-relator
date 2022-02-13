@@ -1,10 +1,10 @@
 export interface Setting {
-  name: string;
-  enable: boolean;
-  pDbId: string;
-  cDbId: string;
-  relationKeys: string;
-  updateProp: string;
+  name: string
+  enable: boolean
+  pDbId: string
+  cDbId: string
+  relationKeys: string
+  updateProp: string
 }
 
 export interface ParentPage {

@@ -1,4 +1,4 @@
-import { Client, LogLevel } from '@notionhq/client'
+import { Client } from '@notionhq/client'
 import {
   PropertyValueTitle,
   PropertyValueMultiSelect,
@@ -6,7 +6,6 @@ import {
 } from '@notion-stuff/v4-types'
 import { ParentPage, PropetyTypeInfo } from './interface'
 import {
-  queryDatabase,
   QueryDatabaseParameters,
   QueryDatabaseResponse,
 } from '@notionhq/client/build/src/api-endpoints'
@@ -90,7 +89,6 @@ export const getParentPages = async (
       })
       pages.push(tmp)
     })
-    // console.log(pages)
   })
   return pages
 }
@@ -167,7 +165,6 @@ export const updateRelation = async (
   childIds: any[],
   relateColumnName: string
 ) => {
-  // console.log(relateColumnName)
   await notion.pages.update({
     page_id: parentId,
     properties: {

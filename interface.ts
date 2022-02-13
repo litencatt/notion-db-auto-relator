@@ -8,11 +8,17 @@ export interface Setting {
 }
 
 export interface ParentPage {
-  page_id: string;
-  relation_keys: RelationKey[];
+  page_id: string
+  relation_keys: RelationKey[]
+}
+
+export interface PropetyTypeInfo {
+  property: string
+  type: string
+  value?: string
 }
 
 export interface RelationKey {
-  key: string;
-  value: string;
+  property: string
+  value: string
 }

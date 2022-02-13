@@ -1,12 +1,11 @@
-import { Client, LogLevel } from '@notionhq/client'
+import { Client } from '@notionhq/client'
 import {
   PropertyValueTitle,
   PropertyValueMultiSelect,
   PropertyValueRichText,
 } from '@notion-stuff/v4-types'
-import { ParentPage } from './interface'
+import { ParentPage, PropetyTypeInfo } from './interface'
 import {
-  queryDatabase,
   QueryDatabaseParameters,
   QueryDatabaseResponse,
 } from '@notionhq/client/build/src/api-endpoints'
@@ -62,10 +61,10 @@ export const databaseQuery = async (
 export const getParentPages = async (
   notion: Client,
   databaseId: string,
-  columnName: string
+  relationKeys: string
 ): Promise<ParentPage[]> => {
   const pages: ParentPage[] = []
-  const propertyNames = columnName.split(',')
+  const propertyNames = relationKeys.split(',')
   const results = await databaseQuery(notion, databaseId, null)
   results.map((result) => {
     result.map((page) => {
@@ -81,37 +80,96 @@ export const getParentPages = async (
           const msProp = property as PropertyValueMultiSelect
           // multi-select but supports single select
           const val = msProp.multi_select.map((e) => e.name)[0]
-          tmp.relation_keys.push({ key: name, value: val })
+          tmp.relation_keys.push({ property: name, value: val })
         } else if (property.type === 'title') {
           const tProp = property as PropertyValueTitle
           const val = tProp.title.map((t) => t.plain_text)[0]
-          tmp.relation_keys.push({ key: name, value: val })
+          tmp.relation_keys.push({ property: name, value: val })
         }
       })
       pages.push(tmp)
     })
-    // console.log(pages)
   })
   return pages
+}
+
+export const getDbProps = async (
+  notion: Client,
+  databaseId: string,
+  relationKeys: string[]
+): Promise<GetDatabaseResponse['properties'][]> => {
+  const db = await getDbInfo(notion, databaseId)
+  const props: any = []
+  Object.entries(db.properties).forEach(([key, property]) => {
+    if (relationKeys.includes(key)) {
+      props.push(property)
+    }
+  })
+  return props
+}
+
+export const getDbInfo = async (
+  notion: Client,
+  databaseId: string
+): Promise<GetDatabaseResponse> => {
+  return await notion.databases.retrieve({ database_id: databaseId })
+}
+
+export const buildFilterConditions = (
+  info: PropetyTypeInfo[]
+): Promise<any[]> => {
+  const filterCondition: any = []
+  info.map((i) => {
+    if (i.value == undefined) {
+      return
+    }
+    filterCondition.push(getTypeFilter(i))
+  })
+  return filterCondition
+}
+
+export const getTypeFilter = (i: PropetyTypeInfo): any => {
+  if (
+    [
+      'title',
+      'rich_text',
+      'url',
+      'email',
+      'phone_number',
+      'number',
+      'checkbox',
+      'select',
+      'date',
+      'created_time',
+      'last_edited_time',
+    ].includes(i.type)
+  ) {
+    return {
+      property: i.property,
+      [i.type]: { equals: i.value },
+    }
+  } else if (
+    [
+      'multi_select',
+      'people',
+      'created_by',
+      'last_edited_by',
+      'relation',
+    ].includes(i.type)
+  ) {
+    return {
+      property: i.property,
+      [i.type]: { contains: i.value },
+    }
+  }
+  return null
 }
 
 export const searchDbPageIds = async (
   notion: Client,
   databaseId: string,
-  parentPage: ParentPage
+  filter: QueryDatabaseParameters['filter']
 ): Promise<string[]> => {
-  const filterCondition: any = []
-  parentPage.relation_keys.map((rkey) =>
-    filterCondition.push({
-      property: rkey.key,
-      multi_select: {
-        contains: rkey.value,
-      },
-    })
-  )
-  console.log(filterCondition)
-
-  const filter = { and: filterCondition }
   const results = await databaseQuery(notion, databaseId, filter)
   const pageIds: string[] = []
   results.map((result) => {
@@ -129,7 +187,6 @@ export const updateRelation = async (
   childIds: any[],
   relateColumnName: string
 ) => {
-  // console.log(relateColumnName)
   await notion.pages.update({
     page_id: parentId,
     properties: {

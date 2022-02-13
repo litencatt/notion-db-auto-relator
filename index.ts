@@ -1,12 +1,14 @@
 import { config } from 'dotenv'
 import { Client, LogLevel } from '@notionhq/client'
-import { Setting } from './interface'
+import { Setting, PropetyTypeInfo } from './interface'
 import {
   getParentPages,
   searchDbPageIds,
   updateRelation,
   getPlainTextFirst,
   databaseQuery,
+  getDbProps,
+  buildFilterConditions,
 } from './notion'
 import {
   PropertyValueTitle,
@@ -15,12 +17,7 @@ import {
 } from '@notion-stuff/v4-types'
 
 // Define type myself
-import { GetDatabaseResponse } from '@notionhq/client/build/src/api-endpoints'
 type PropertyValueCheckBox = ExtractedPropertyValue<'checkbox'>
-type MultiSelectProperty = Extract<
-  GetDatabaseResponse['properties'][string],
-  { type: 'multi_select' }
->
 
 config()
 const settingsDbId = process.env.SETTINGS_DB_ID as string
@@ -47,9 +44,37 @@ async function relateDb() {
       setting.relationKeys
     )
 
+    const relationKeys = setting.relationKeys.split(',')
+    const cDbProps = await getDbProps(notion, setting.cDbId, relationKeys)
+    console.log(cDbProps)
+
+    const cRelationPropInfo = cDbProps.map((p) => {
+      return {
+        property: p.name,
+        type: p.type,
+      } as unknown as PropetyTypeInfo
+    })
+    console.log(cRelationPropInfo)
+
     for (const parent of parentPages) {
-      parent.relation_keys.map((e) => e.value)
-      const childPageIds = await searchDbPageIds(notion, setting.cDbId, parent)
+      cRelationPropInfo.map((crp) => {
+        parent.relation_keys.map((prk) => {
+          if (crp.property == prk.property) {
+            crp.value = prk.value
+          }
+        })
+      })
+      console.log(cRelationPropInfo)
+
+      const filterConditions = await buildFilterConditions(cRelationPropInfo)
+      const andFilter = { and: filterConditions }
+      console.log(JSON.stringify(andFilter))
+
+      const childPageIds = await searchDbPageIds(
+        notion,
+        setting.cDbId,
+        andFilter
+      )
       const relationPageIds = []
       for (const childPageId of childPageIds) {
         relationPageIds.push({ id: childPageId })

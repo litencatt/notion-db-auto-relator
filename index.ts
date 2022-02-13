@@ -9,6 +9,7 @@ import {
   databaseQuery,
   getDbProps,
   buildFilterConditions,
+  createRelationProperty,
 } from './notion'
 import {
   PropertyValueTitle,
@@ -36,6 +37,13 @@ async function relateDb() {
       console.log(`Name: ${setting.name} is skipped`)
       continue
     }
+
+    await createRelationProperty(
+      notion,
+      setting.pDbId,
+      setting.cDbId,
+      setting.updateProp
+    )
 
     console.log(`Name: ${setting.name} is start`)
     const parentPages = await getParentPages(

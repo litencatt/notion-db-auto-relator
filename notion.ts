@@ -181,6 +181,25 @@ export const searchDbPageIds = async (
   return pageIds
 }
 
+export const createRelationProperty = async (
+  notion: Client,
+  databaseId: string,
+  relateToDatabaseId: string,
+  relatePropertyName: string
+) => {
+  await notion.databases.update({
+    database_id: databaseId,
+    properties: {
+      [relatePropertyName]: {
+        type: 'relation',
+        relation: {
+          database_id: relateToDatabaseId,
+        },
+      },
+    },
+  })
+}
+
 export const updateRelation = async (
   notion: Client,
   parentId: string,

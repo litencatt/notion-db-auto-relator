@@ -124,7 +124,7 @@ async function init(): Promise<Setting[]> {
         'Relation Keys'
       ] as PropertyValueRichText
       const autoUpdateProp = page.properties[
-        'Auto Update Property in Parent DB'
+        '(option)Relation Property Name in Parent DB'
       ] as PropertyValueRichText
 
       settings.push({

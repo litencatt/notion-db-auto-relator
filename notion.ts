@@ -129,15 +129,37 @@ export const buildFilterConditions = (
 }
 
 export const getTypeFilter = (i: PropetyTypeInfo): any => {
-  if (i.type == 'select') {
+  if (
+    [
+      'title',
+      'rich_text',
+      'url',
+      'email',
+      'phone_number',
+      'number',
+      'checkbox',
+      'select',
+      'date',
+      'created_time',
+      'last_edited_time',
+    ].includes(i.type)
+  ) {
     return {
       property: i.property,
-      select: { equals: i.value },
+      [i.type]: { equals: i.value },
     }
-  } else if (i.type == 'multi_select') {
+  } else if (
+    [
+      'multi_select',
+      'people',
+      'created_by',
+      'last_edited_by',
+      'relation',
+    ].includes(i.type)
+  ) {
     return {
       property: i.property,
-      multi_select: { contains: i.value },
+      [i.type]: { contains: i.value },
     }
   }
   return null

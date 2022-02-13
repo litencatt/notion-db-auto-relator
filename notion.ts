@@ -185,12 +185,12 @@ export const createRelationProperty = async (
   notion: Client,
   databaseId: string,
   relateToDatabaseId: string,
-  relatePropertyName: string
+  updatePropertyName: string
 ) => {
   await notion.databases.update({
     database_id: databaseId,
     properties: {
-      [relatePropertyName]: {
+      [updatePropertyName]: {
         type: 'relation',
         relation: {
           database_id: relateToDatabaseId,
@@ -204,12 +204,12 @@ export const updateRelation = async (
   notion: Client,
   parentId: string,
   childIds: any[],
-  relatePropertyName: string
+  updatePropertyName: string
 ) => {
   await notion.pages.update({
     page_id: parentId,
     properties: {
-      [relatePropertyName]: {
+      [updatePropertyName]: {
         type: 'relation',
         relation: childIds,
       },

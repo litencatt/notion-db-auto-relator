@@ -38,11 +38,16 @@ async function relateDb() {
       continue
     }
 
+    const updatePropertyName = getUpdatePropertyName(
+      setting.relationKeys,
+      setting.updateProp
+    )
+
     await createRelationProperty(
       notion,
       setting.pDbId,
       setting.cDbId,
-      setting.updateProp
+      updatePropertyName
     )
 
     console.log(`Name: ${setting.name} is start`)
@@ -92,7 +97,7 @@ async function relateDb() {
         notion,
         parent.page_id,
         relationPageIds,
-        setting.updateProp
+        updatePropertyName
       )
     }
     console.log(`Name: ${setting.name} is end`)
@@ -135,4 +140,14 @@ async function init(): Promise<Setting[]> {
 
   // settings.map(e => console.log(e))
   return settings
+}
+
+function getUpdatePropertyName(
+  relationKeys: string,
+  relatePropertyName: string
+): string {
+  if (relatePropertyName == null || relatePropertyName == undefined) {
+    return `Relation with ${relationKeys}`
+  }
+  return relatePropertyName
 }

@@ -1,6 +1,7 @@
 import { Client } from '@notionhq/client'
 import {
   PropertyValueTitle,
+  PropertyValueSelect,
   PropertyValueMultiSelect,
   PropertyValueRichText,
 } from '@notion-stuff/v4-types'
@@ -70,7 +71,12 @@ export const getParentPages = async (
         if (!propertyNames.includes(name)) {
           return
         }
-        if (property.type === 'multi_select') {
+        if (property.type === 'select') {
+          const sProp = property as PropertyValueSelect
+          // multi-select but supports single select
+          const val = sProp.select?.name || ''
+          tmp.relation_keys.push({ property: name, value: val })
+        } else if (property.type === 'multi_select') {
           const msProp = property as PropertyValueMultiSelect
           // multi-select but supports single select
           const val = msProp.multi_select.map((e) => e.name)[0]

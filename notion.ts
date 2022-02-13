@@ -204,12 +204,12 @@ export const updateRelation = async (
   notion: Client,
   parentId: string,
   childIds: any[],
-  relateColumnName: string
+  relatePropertyName: string
 ) => {
   await notion.pages.update({
     page_id: parentId,
     properties: {
-      [relateColumnName]: {
+      [relatePropertyName]: {
         type: 'relation',
         relation: childIds,
       },

@@ -21,7 +21,14 @@ import {
 type PropertyValueCheckBox = ExtractedPropertyValue<'checkbox'>
 
 config()
+const notionToken = process.env.NOTION_TOKEN as string
 const settingsDbId = process.env.SETTINGS_DB_ID as string
+
+if (notionToken == null || settingsDbId == null) {
+  console.log('NOTION_TOKEN and SETTINGS_DB_ID is required.')
+  // @ts-ignore
+  return
+}
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,

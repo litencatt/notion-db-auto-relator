@@ -5,7 +5,7 @@
   "author": "litencatt <ncl0709@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node ./index.ts"
+    "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
     "@notionhq/client": "0.4.9",
